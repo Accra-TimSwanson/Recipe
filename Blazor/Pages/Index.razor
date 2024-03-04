@@ -1,0 +1,50 @@
+﻿@page "/"
+@using RecipeApp.Shared;
+@using System.Text.Json;
+@using Recipe.Services
+@using AppState
+
+@inject AppState state
+@inject IRecipeService RecipeService
+@inject NavigationManager NavigationManager
+
+<div class="p-5">
+	<div class="d-flex justify-content-between">
+		<h1>Recipes</h1>
+		<button class="btn btn-primary" @onclick='_ => { NavigationManager.NavigateTo("/AddRecipe");}'>Add Recipe</button>
+	</div>
+    <div class="d-flex">
+		@foreach(var recipe in _recipes)
+		{
+			<div class="card w-25 p-5 m-3 d-flex">
+				<h3>@recipe.Title</h3>
+				<p>@recipe.Description</p>
+				<img src="data:image/jpeg;base64,@recipe.Image" style="width: 15vw; height: 15vh" />
+				<p class="btn btn-link" @onclick="_ => { RecipeClicked(recipe);}">View Details</p>
+			</div>
+		}
+	</div>
+</div>
+
+@code {
+	private List<RecipeDto> _recipes = new List<RecipeDto>();
+	private RecipeDto _selectedRecipe = new RecipeDto();
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			_recipes = await RecipeService.GetAllRecipes();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex.Message);
+		}
+	}
+
+	private void RecipeClicked(RecipeDto recipe)
+	{
+		NavigationManager.NavigateTo("RecipeDetails");
+		AppState.SelectedRecipe = recipe;
+	}
+}
