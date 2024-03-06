@@ -1,4 +1,4 @@
-﻿using RecipeApp.Shared;
+﻿using RecipeApp.Contracts;
 
 namespace Recipe.Services
 {

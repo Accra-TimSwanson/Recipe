@@ -1,9 +1,10 @@
-﻿using RecipeApp.Shared;
+﻿using RecipeApp.Contracts;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Recipe.Services
 {
-    public class RecipeService : IRecipeService
+	public class RecipeService : IRecipeService
     {
         private readonly HttpClient httpClient;
 
@@ -13,22 +14,29 @@ namespace Recipe.Services
         }
         public async Task<List<RecipeDto>> GetAllRecipes()
         {   
-            return await httpClient.GetFromJsonAsync<List<RecipeDto>>("https://localhost:7092/Recipe/GetAllRecipes");
+            var result = await httpClient.GetFromJsonAsync<List<RecipeDto>>("https://localhost:7092/Recipe/GetAllRecipes");
+            return result != null ? result : new();
         }
 
         public async Task<RecipeDto> GetRecipeById(Guid Id)
         {
-            return await httpClient.GetFromJsonAsync<RecipeDto>("https://localhost:7092/Recipe/GetById");
-        }
+            var result = await httpClient.GetFromJsonAsync<RecipeDto>("https://localhost:7092/Recipe/GetById");
+			return result != null ? result : new();
+		}
 
         public async Task<RecipeDto> AddRecipe(RecipeDto recipe)
         {
-            return await httpClient.GetFromJsonAsync<RecipeDto>("https://localhost:7092/Recipe/get");
-        }
+			var result = await httpClient.PostAsJsonAsync("https://localhost:7092/Recipe/Add", recipe);
+
+            if (result.IsSuccessStatusCode) return recipe;
+            
+			return new();
+		}
 
         public async Task<RecipeDto> UpdateRecipe(RecipeDto recipe)
         {
-            return await httpClient.GetFromJsonAsync<RecipeDto>("https://localhost:7092/Recipe/get");
-        }
+            var result = await httpClient.GetFromJsonAsync<RecipeDto>("https://localhost:7092/Recipe/Update");
+			return result != null ? result : new();
+		}
     }
 }

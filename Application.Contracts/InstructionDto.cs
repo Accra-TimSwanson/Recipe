@@ -1,4 +1,4 @@
-namespace RecipeApp.Shared
+namespace RecipeApp.Contracts
 {
 	public class InstructionDto
 	{

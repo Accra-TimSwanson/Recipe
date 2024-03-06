@@ -1,50 +1,187 @@
 ﻿@page "/"
-@using RecipeApp.Shared;
+@using RecipeApp.Contracts;
 @using System.Text.Json;
 @using Recipe.Services
-@using AppState
 
-@inject AppState state
+
 @inject IRecipeService RecipeService
-@inject NavigationManager NavigationManager
 
 <div class="p-5">
 	<div class="d-flex justify-content-between">
-		<h1>Recipes</h1>
-		<button class="btn btn-primary" @onclick='_ => { NavigationManager.NavigateTo("/AddRecipe");}'>Add Recipe</button>
+		<div class="d-flex align-content-center w-50">
+			<h1 class="px-3">Recipes</h1>
+			<input class="form-control" type="text" placeholder="Search by Recipe Name or Ingredient" @bind="_searchText">
+			<button class="btn btn-primary" @onclick="Search">
+				Search
+			</button>
+			<button class="btn btn-secondary" @onclick='_ => { _filteredRecipes = _recipes; _searchText = ""; }'>
+				Clear
+			</button>
+		</div>
+		<button class="btn btn-primary" @onclick="CreateRecipe">
+			Add Recipe
+		</button>
 	</div>
-    <div class="d-flex">
-		@foreach(var recipe in _recipes)
+	<div class="d-flex flex-wrap">
+		@foreach(var recipe in _filteredRecipes)
 		{
-			<div class="card w-25 p-5 m-3 d-flex">
+			<div class="selector-card" @onclick="_ => { RecipeClicked(recipe);}">
 				<h3>@recipe.Title</h3>
 				<p>@recipe.Description</p>
-				<img src="data:image/jpeg;base64,@recipe.Image" style="width: 15vw; height: 15vh" />
-				<p class="btn btn-link" @onclick="_ => { RecipeClicked(recipe);}">View Details</p>
+				@if (recipe.Image is not null)
+				{
+					<img class="recipe-image" src="data:image/jpeg;base64,@recipe.Image"/>
+				}
 			</div>
 		}
 	</div>
 </div>
 
+@if (_selectedRecipe is not null)
+{
+	<Modal @ref="_recipeClickedModal" >
+		<ModalContent Centered Scrollable Size="ModalSize.Default">
+			<ModalHeader>
+				<ModalTitle>Recipe Details</ModalTitle>
+				<CloseButton />
+			</ModalHeader>
+			<ModalBody>
+				<div class="d-flex justify-content-between">
+						<h1>@_selectedRecipe.Title</h1>
+						<div class="btn btn-primary" @onclick="_ => { _addRecipeModal.Show(); _recipeClickedModal.Hide(); _newRecipe = _selectedRecipe; }">Edit</div>
+				</div>
+				<div class="py-2">
+					<h4>Description:</h4>
+						<div>@_selectedRecipe.Description</div>
+				</div>
+				@if (_selectedRecipe.Image is not null)
+				{
+					<img src="data:image/jpeg;base64,_selectedRecipe.Image" style="width: 15vw; height: 15vh" />
+				}
+				<div class="py-2">
+					<h4>Ingredients:</h4>
+					@if(_selectedRecipe.Ingredients is not null && _selectedRecipe.Ingredients.Count() > 0)
+					{
+						@foreach (var ingredient in _selectedRecipe.Ingredients)
+						{
+							<p>@ingredient.Name @ingredient.Quantity @ingredient.Unit</p>
+						}
+					}
+				</div>
+				<div class="py-2">
+					<h4>Instructions:</h4>
+					@if(_selectedRecipe.Instructions is not null && _selectedRecipe.Instructions.Count() > 0)
+					{
+						@foreach (var instruction in _selectedRecipe.Instructions)
+						{
+							<p>@instruction.Step @instruction.Description</p>
+						}
+					}
+				</div>
+			</ModalBody>
+			<ModalFooter>
+				<Button Color="Color.Primary" @onclick="_recipeClickedModal.Hide">Close</Button>
+			</ModalFooter>
+		</ModalContent>
+	</Modal>
+}
+@if (_newRecipe is not null)
+{
+	<Modal @ref="_addRecipeModal">
+		<ModalContent Centered Scrollable Size="ModalSize.Default">
+			<ModalHeader>
+				<ModalTitle>@(_newRecipe == _selectedRecipe ? "Edit Recipe" : "Add Recipe")</ModalTitle>
+				<CloseButton />
+			</ModalHeader>
+			<ModalBody>
+				<div class="form-group py-2">
+					<label for="title">Title</label>
+					<input type="text" class="form-control" id="title" @bind="_newRecipe.Title" />
+				</div>
+				<div class="form-group py-2">
+					<label for="description">Description</label>
+					<textarea class="form-control" id="description" @bind="_newRecipe.Description" />
+				</div>
+				<div class="form-group py-2">
+					<label for="image">Image</label>
+					<input type="file" class="form-control" id="image" />
+				</div>
+				<div class="py-2">
+					<hr />
+					<div>Ingredients:</div>
+					<div class="form-group">
+						<label for="ingredientName">Name</label>
+						<input type="text" class="form-control" id="ingredientName" @bind="_newRecipeIngredient.Name"/>
+					</div>
+					<div class="row">
+						<div class="col-6">
+							<div class="form-group">
+								<label for="ingredientQuantity">Quantity</label>
+									<input type="text" class="form-control" id="ingredientQuantity" @bind="_newRecipeIngredient.Quantity" />
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="form-group">
+								<label for="ingredientUnit">Unit</label>
+									<input type="text" class="form-control" id="ingredientUnit" @bind="_newRecipeIngredient.Unit" />
+							</div>
+						</div>
+					</div>
+					<div class="btn btn-primary" @onclick="_ => { AddIngredient(); }">Add Ingredient</div>
+				</div>
+
+			@if (_newRecipe is not null && _newRecipe.Ingredients is not null && _newRecipe.Ingredients.Count() > 0)
+			{
+				<hr />
+				<div>Ingredients Added:</div>
+				@foreach (var ingredient in _newRecipe.Ingredients)
+				{
+					<div class="d-flex align-items-center">
+						<div>-</div>
+						<div class="px-1">@ingredient.Name @ingredient.Quantity @ingredient.Unit</div>
+						<div class="btn btn-link" @onclick="_ => { _newRecipe.Ingredients.RemoveAt(_newRecipe.Ingredients.FindIndex(x=>x.Id == ingredient.Id)); }">Delete</div>					
+					</div>
+				}
+			}
+			<div class="py-2">
+				<hr />
+				<div>Instructions:</div>
+				<div class="form-group">
+					<label for="step">Step</label>
+					<input type="text" class="form-control" id="step" 
+						value="@(_newRecipe!.Instructions is not null ? _newRecipe.Instructions.Count() + 1 : 1)" disabled />
+				</div>
+				<div class="form-group">
+					<label for="description">Description</label>
+						<textarea class="form-control" id="description" @bind="_newRecipeInstruction.Description" />
+				</div>
+			</div> 
+
+			<div class="form-group py-2">
+				<label for="instructions">Instructions</label>
+				<div class="btn btn-primary" @onclick="_ => { AddInstruction(); }">Add Ingredient</div>
+			</div>
+			@if (_newRecipe is not null && _newRecipe.Instructions is not null && _newRecipe.Instructions.Count() > 0)
+			{
+				<hr />
+				<div>Instructions Added:</div>
+				@foreach (var instruction in _newRecipe.Instructions)
+				{
+					<div class="d-flex align-items-center">
+						<div>-</div>
+						<div class="px-1">@instruction.Step @instruction.Description</div>
+						<div class="btn btn-link" @onclick="_ => { _newRecipe.Instructions.RemoveAt(_newRecipe.Instructions.FindIndex(x=>x.Id == instruction.Id)); }">Delete</div>
+					</div>
+				}
+			}
+		</ModalBody>
+		<ModalFooter>
+			<Button Color="Color.Primary" @onclick="AddRecipe">Submit Recipe</Button>
+		</ModalFooter>
+	</ModalContent>
+</Modal>
+}
+
 @code {
-	private List<RecipeDto> _recipes = new List<RecipeDto>();
-	private RecipeDto _selectedRecipe = new RecipeDto();
-
-	protected override async Task OnInitializedAsync()
-	{
-		try
-		{
-			_recipes = await RecipeService.GetAllRecipes();
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex.Message);
-		}
-	}
-
-	private void RecipeClicked(RecipeDto recipe)
-	{
-		NavigationManager.NavigateTo("RecipeDetails");
-		AppState.SelectedRecipe = recipe;
-	}
+	
 }
