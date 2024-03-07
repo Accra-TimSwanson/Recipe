@@ -4,8 +4,19 @@
 @using System.Text.Json;
 @using Recipe.Services
 
-
-@inject IRecipeService RecipeService
+<script>
+	function PerformAjaxCall() {
+		// create an ajax call to get data from the server
+		$.ajax({
+			url: 'https://localhost:7092/Recipe/GetAllRecipes',
+			type: 'GET',
+			success: function (data) {
+				// data is the response from the server
+				console.log(data);
+			}
+		});
+	}
+</script>
 
 <div class="p-5">
 	<div class="d-flex justify-content-between">
@@ -73,7 +84,7 @@
 					<h4>Instructions:</h4>
 					@if(_selectedRecipe.Instructions is not null && _selectedRecipe.Instructions.Count() > 0)
 					{
-						@foreach (var instruction in _selectedRecipe.Instructions)
+						@foreach (var instruction in _selectedRecipe.Instructions.OrderBy(x => x.Step))
 						{
 							<p>@instruction.Step @instruction.Description</p>
 						}
@@ -162,7 +173,7 @@
 			{
 				<hr />
 				<div>Instructions Added:</div>
-				@foreach (var instruction in _newRecipe.Instructions)
+				@foreach (var instruction in _newRecipe.Instructions.OrderBy(x=> x.Step))
 				{
 					<div class="d-flex align-items-center">
 						<div>-</div>

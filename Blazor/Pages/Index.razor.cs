@@ -1,5 +1,6 @@
 ﻿using Blazorise;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Recipe.Services;
 using RecipeApp.Contracts;
 
@@ -7,6 +8,9 @@ namespace Recipe.Pages
 {
 	public partial class Index
 	{
+		[Inject] public IRecipeService _recipeService { get; set; }
+		[Inject] public IJSRuntime _jsRuntime { get; set; }
+
 		private Modal _recipeClickedModal = new();
 		private Modal _addRecipeModal = new();
 		private string _searchText = "";
@@ -20,15 +24,14 @@ namespace Recipe.Pages
 		private IngredientDto _newRecipeIngredient = new();
 		private InstructionDto _newRecipeInstruction = new();
 
-		[Inject]
-        public IRecipeService _recipeService { get; set; }
-
 		protected override async Task OnInitializedAsync()
 		{
 			try
 			{
 				_recipes = await _recipeService.GetAllRecipes();
 				_filteredRecipes = _recipes;
+
+				await _jsRuntime.InvokeVoidAsync("PerformAjaxCall");
 			}
 			catch (Exception ex)
 			{
@@ -125,7 +128,7 @@ namespace Recipe.Pages
 			// check to see if it was an edit or a new recipe
 			if (_newRecipe == _selectedRecipe)
 			{
-				await RecipeService.UpdateRecipe(_newRecipe);
+				await _recipeService.UpdateRecipe(_newRecipe);
 				// update the recipe in the list
 				_filteredRecipes[_filteredRecipes.FindIndex(x => x.Id == _newRecipe.Id)] = _newRecipe;
 				await _addRecipeModal.Hide();
@@ -133,7 +136,7 @@ namespace Recipe.Pages
 			}
 
 			// Add the recipe to the database
-			await RecipeService.AddRecipe(_newRecipe);
+			await _recipeService.AddRecipe(_newRecipe);
 
 			// Add the recipe to the list locally
 			_filteredRecipes.Add(_newRecipe);

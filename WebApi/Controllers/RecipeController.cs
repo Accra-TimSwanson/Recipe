@@ -96,57 +96,86 @@ namespace WebApi.Controllers
 
             if (existingRecipe != null) {
 
-            // update the recipe
+                // update the recipe
                 db.Entry(existingRecipe).CurrentValues.SetValues(recipe);
 
                 // update the ingredients
-                foreach (var existingIngredient in existingRecipe.Ingredients.ToList())
+                if (recipe.Ingredients != null)
                 {
-                    if (!recipe.Ingredients.Any(c => c.Id == existingIngredient.Id))
-                        db.Ingredient.Remove(existingIngredient);
-                }
-                foreach (var ingredient in recipe.Ingredients)
-                {
-                    var existingIngredient = existingRecipe.Ingredients
-                        .Where(c => c.Id == ingredient.Id)
-                        .SingleOrDefault();
-                    if (existingIngredient != null)
-                        db.Entry(existingIngredient).CurrentValues.SetValues(ingredient);
-                    else
+                    // remove any ingredients that are not in the new list as they have been deleted
+                    if (existingRecipe.Ingredients != null)
                     {
-                        var newIngredient = new Ingredient
+                        foreach (var existingIngredient in existingRecipe.Ingredients.ToList())
                         {
-                            Name = ingredient.Name,
-                            Quantity = ingredient.Quantity,
-                            RecipeId = recipe.Id,
-                            Unit = ingredient.Unit
-                        };
-                        db.Ingredient.Add(newIngredient);
+                            if (!recipe.Ingredients.Any(c => c.Id == existingIngredient.Id))
+                                db.Ingredient.Remove(existingIngredient);
+                        }
+                    }
+
+                    foreach (var ingredient in recipe.Ingredients)
+                    {
+                        // if the recipe does not have any ingredients
+                        // create a new list to handle null reference exception
+                        existingRecipe.Ingredients ??= new List<Ingredient>();
+
+                        var existingIngredient = existingRecipe.Ingredients
+                            .Where(c => c.Id == ingredient.Id)
+                            .SingleOrDefault();
+                        
+                        if (existingIngredient != null)
+                        { 
+                            // if the ingredient exists, update it incase values changed
+                            db.Entry(existingIngredient).CurrentValues.SetValues(ingredient);
+                        }
+                        else
+                        {
+                            // if the ingredient does not exist, add it
+                            var newIngredient = new Ingredient
+                            {
+                                Name = ingredient.Name,
+                                Quantity = ingredient.Quantity,
+                                RecipeId = recipe.Id,
+                                Unit = ingredient.Unit
+                            };
+                            db.Ingredient.Add(newIngredient);
+                        }
                     }
                 }
 
                 // update the instructions
-                foreach (var existingInstruction in existingRecipe.Instructions.ToList())
+                if (recipe.Instructions != null)
                 {
-                    if (!recipe.Instructions.Any(c => c.Id == existingInstruction.Id))
-                        db.Instruction.Remove(existingInstruction);
-                }
-                foreach (var instruction in recipe.Instructions)
-                {
-                    var existingInstruction = existingRecipe.Instructions
-                        .Where(c => c.Id == instruction.Id)
-                        .SingleOrDefault();
-                    if (existingInstruction != null)
-                        db.Entry(existingInstruction).CurrentValues.SetValues(instruction);
-                    else
+                    // remove any instructions that are not in the new list as they have been deleted
+                    if (existingRecipe.Instructions != null)
                     {
-                        var newInstruction = new Instruction
+                        foreach (var existingInstruction in existingRecipe.Instructions.ToList())
                         {
-                            Step = instruction.Step,
-                            RecipeId = recipe.Id,
-                            Description = instruction.Description
-                        };
-                        db.Instruction.Add(newInstruction);
+                            if (!recipe.Instructions.Any(c => c.Id == existingInstruction.Id))
+                                db.Instruction.Remove(existingInstruction);
+                        }
+                    }
+
+                    foreach (var instruction in recipe.Instructions)
+                    {
+                        // if the recipe does not have any instructions
+                        // create a new list to handle null reference exception
+                        existingRecipe.Instructions ??= new List<Instruction>();
+                            
+                        var existingInstruction = existingRecipe.Instructions
+                            .Where(c => c.Id == instruction.Id)
+                            .SingleOrDefault();
+                        if (existingInstruction != null)
+                            db.Entry(existingInstruction).CurrentValues.SetValues(instruction);
+                        else
+                        {
+                            var newInstruction = new Instruction
+                            {
+                                Step = instruction.Step,
+                                RecipeId = recipe.Id,
+                                Description = instruction.Description
+                            };
+                            db.Instruction.Add(newInstruction);
+                        }
                     }
                 }
 
