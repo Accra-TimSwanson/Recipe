@@ -3,6 +3,7 @@ using Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipeApp.Contracts;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace WebApi.Controllers
 {
@@ -81,25 +82,76 @@ namespace WebApi.Controllers
         [HttpPut]
         [Route("Update")]
         public void Update(RecipeDto recipeDto)
-		{
-            // check to see if the recipe exists
+        {
+
+        // need top update the recipe, ingredients, and instructions
+        // map to entity
+            var recipe = _mapper.Map<Recipe>(recipeDto);
             AppDbContext db = new AppDbContext();
             var existingRecipe = db.Recipe
-            .Where(x => x.Id == recipeDto.Id)
-            .AsNoTracking()
-            .FirstOrDefault();
+                .Include(x => x.Ingredients)
+                .Include(x => x.Instructions)
+                .Where(x => x.Id == recipeDto.Id)
+                .FirstOrDefault();
 
-            if (existingRecipe == null)
-			{
-				throw new Exception("Recipe does not exist");
-			}
+            if (existingRecipe != null) {
 
-			// map to entity
-			var recipe = _mapper.Map<Recipe>(recipeDto);
+            // update the recipe
+                db.Entry(existingRecipe).CurrentValues.SetValues(recipe);
 
-			// save to database
-			db.Recipe.Update(recipe);
-			db.SaveChanges();
-		}
+                // update the ingredients
+                foreach (var existingIngredient in existingRecipe.Ingredients.ToList())
+                {
+                    if (!recipe.Ingredients.Any(c => c.Id == existingIngredient.Id))
+                        db.Ingredient.Remove(existingIngredient);
+                }
+                foreach (var ingredient in recipe.Ingredients)
+                {
+                    var existingIngredient = existingRecipe.Ingredients
+                        .Where(c => c.Id == ingredient.Id)
+                        .SingleOrDefault();
+                    if (existingIngredient != null)
+                        db.Entry(existingIngredient).CurrentValues.SetValues(ingredient);
+                    else
+                    {
+                        var newIngredient = new Ingredient
+                        {
+                            Name = ingredient.Name,
+                            Quantity = ingredient.Quantity,
+                            RecipeId = recipe.Id,
+                            Unit = ingredient.Unit
+                        };
+                        db.Ingredient.Add(newIngredient);
+                    }
+                }
+
+                // update the instructions
+                foreach (var existingInstruction in existingRecipe.Instructions.ToList())
+                {
+                    if (!recipe.Instructions.Any(c => c.Id == existingInstruction.Id))
+                        db.Instruction.Remove(existingInstruction);
+                }
+                foreach (var instruction in recipe.Instructions)
+                {
+                    var existingInstruction = existingRecipe.Instructions
+                        .Where(c => c.Id == instruction.Id)
+                        .SingleOrDefault();
+                    if (existingInstruction != null)
+                        db.Entry(existingInstruction).CurrentValues.SetValues(instruction);
+                    else
+                    {
+                        var newInstruction = new Instruction
+                        {
+                            Step = instruction.Step,
+                            RecipeId = recipe.Id,
+                            Description = instruction.Description
+                        };
+                        db.Instruction.Add(newInstruction);
+                    }
+                }
+
+                db.SaveChanges();
+            }
+        }
     }
 }
