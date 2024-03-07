@@ -8,14 +8,30 @@
     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
     <link href="_content/Blazorise/blazorise.css" rel="stylesheet" />
     <link href="_content/Blazorise.Bootstrap5/blazorise.bootstrap5.css" rel="stylesheet" />
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.7.1.js"
             integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
             crossorigin="anonymous"></script>
 
     <link href="css/app.css" rel="stylesheet" />
 
+
     <!-- If you add any scoped CSS files, uncomment the following to load them
     <link href="Recipe.styles.css" rel="stylesheet" /> -->
+
+    <script>
+        function PerformAjaxCall() {
+            // create an ajax call to get data from the server
+            $.ajax({
+                url: 'https://localhost:7092/Recipe/GetAllRecipes',
+                type: 'GET',
+                success: function (data) {
+                    // data is the response from the server
+                    console.log(data);
+                }
+            });
+        }
+    </script>
 </head>
 
 <body>

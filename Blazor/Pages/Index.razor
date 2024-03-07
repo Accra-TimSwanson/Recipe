@@ -4,24 +4,10 @@
 @using System.Text.Json;
 @using Recipe.Services
 
-<script>
-	function PerformAjaxCall() {
-		// create an ajax call to get data from the server
-		$.ajax({
-			url: 'https://localhost:7092/Recipe/GetAllRecipes',
-			type: 'GET',
-			success: function (data) {
-				// data is the response from the server
-				console.log(data);
-			}
-		});
-	}
-</script>
-
 <div class="p-5">
 	<div class="d-flex justify-content-between">
-		<div class="d-flex align-content-center w-50">
-			<h1 class="px-3">Recipes</h1>
+		<h1 class="px-3">Recipes</h1>
+		<div class="d-flex align-content-center w-100 mx-5">
 			<input class="form-control" type="text" placeholder="Search by Recipe Name or Ingredient" @bind="_searchText">
 			<button class="btn btn-primary" @onclick="Search">
 				Search
@@ -34,16 +20,39 @@
 			Add Recipe
 		</button>
 	</div>
-	<div class="d-flex flex-wrap">
-		@foreach(var recipe in _filteredRecipes)
+	<div class="d-flex flex-wrap justify-content-center">
+		@if (_isLoaded)
 		{
-			<div class="selector-card" @onclick="_ => { RecipeClicked(recipe);}">
-				<h3>@recipe.Title</h3>
-				<p>@recipe.Description</p>
-				@if (recipe.Image is not null)
+			@if (_filteredRecipes.Count() > 0)
+			{
+				@foreach (var recipe in _filteredRecipes)
 				{
-					<img class="recipe-image" src="@recipe.Image"/>
+					<div class="selector-card" @onclick="_ => { RecipeClicked(recipe);}">
+						<h3>@recipe.Title</h3>
+						<p>@recipe.Description</p>
+						@if (recipe.Image is not null)
+						{
+							<img class="recipe-image" src="@recipe.Image"/>
+						}
+					</div>
 				}
+			}
+			else
+			{
+				<div class="card p-5 mt-5">
+					<div class="card-body">
+						<h5 class="card-title">@(_searchText.Length == 0 ? "No recipes have been entered" : "Your search yielded no results")</h5>
+					</div>
+				</div>
+			}
+		}
+		else
+		{
+			<div class="d-block text-align-center mt-5 p-5 border-3">
+				<div class="d-flex justify-content-center"> 
+					<div class="fa fa-3x fa-spinner fa-spin"></div>
+				</div>
+				<div class="pt-3">Loading Recipe Data...</div>
 			</div>
 		}
 	</div>
@@ -51,7 +60,7 @@
 
 @if (_selectedRecipe is not null)
 {
-	<Modal @ref="_recipeClickedModal" >
+	<Modal @ref="_recipeClickedModal" Closing="OnModalClosing">
 		<ModalContent Centered Scrollable Size="ModalSize.ExtraLarge">
 			<ModalHeader>
 				<ModalTitle>Recipe Details</ModalTitle>
@@ -76,7 +85,7 @@
 					{
 						@foreach (var ingredient in _selectedRecipe.Ingredients)
 						{
-							<p>@ingredient.Name @ingredient.Quantity @ingredient.Unit</p>
+							<p>- @ingredient.Name @ingredient.Quantity @ingredient.Unit</p>
 						}
 					}
 				</div>
@@ -86,7 +95,7 @@
 					{
 						@foreach (var instruction in _selectedRecipe.Instructions.OrderBy(x => x.Step))
 						{
-							<p>@instruction.Step @instruction.Description</p>
+							<p>@instruction.Step. @instruction.Description</p>
 						}
 					}
 				</div>
@@ -99,7 +108,7 @@
 }
 @if (_newRecipe is not null)
 {
-	<Modal @ref="_addRecipeModal">
+	<Modal @ref="_addRecipeModal" Closing="OnModalClosing">
 		<ModalContent Centered Scrollable Size="ModalSize.ExtraLarge">
 			<ModalHeader>
 				<ModalTitle>@(_newRecipe == _selectedRecipe ? "Edit Recipe" : "Add Recipe")</ModalTitle>

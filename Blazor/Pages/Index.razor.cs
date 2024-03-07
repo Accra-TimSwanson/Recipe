@@ -11,9 +11,12 @@ namespace Recipe.Pages
 		[Inject] public IRecipeService _recipeService { get; set; }
 		[Inject] public IJSRuntime _jsRuntime { get; set; }
 
-		private Modal _recipeClickedModal = new();
-		private Modal _addRecipeModal = new();
-		private string _searchText = "";
+		public bool _isLoaded;
+
+		private Modal? _loadingModal = new();
+		private Modal? _recipeClickedModal = new();
+		private Modal? _addRecipeModal = new();
+        private string _searchText = "";
 
 		private List<RecipeDto> _recipes = new();
 		private List<RecipeDto> _filteredRecipes = new();
@@ -32,6 +35,11 @@ namespace Recipe.Pages
 				_filteredRecipes = _recipes;
 
 				await _jsRuntime.InvokeVoidAsync("PerformAjaxCall");
+
+				// just to simulate load and loading screen
+				await Task.Delay(2000);
+
+				_isLoaded = true;
 			}
 			catch (Exception ex)
 			{
@@ -147,6 +155,15 @@ namespace Recipe.Pages
 			_newRecipeInstruction = new();
 
 			await _addRecipeModal.Hide();
+		}
+
+		// put in util to share out when used across pages
+		public static Task OnModalClosing(ModalClosingEventArgs e)
+		{
+			if (e.CloseReason != CloseReason.UserClosing)
+				e.Cancel = true;
+
+			return Task.CompletedTask;
 		}
 	}
 }

@@ -6,8 +6,7 @@ namespace Domain
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //optionsBuilder.UseSqlServer("Server=BLUEBEAUTY\\SQLEXPRESS;Database=RecipeApp;Trusted_Connection=True;TrustServerCertificate=True;");
-            optionsBuilder.UseSqlServer("Server=localhost;Database=RecipeApp;Trusted_Connection=True;TrustServerCertificate=True;");
+            optionsBuilder.UseSqlServer("Server=BLUEBEAUTY\\SQLEXPRESS;Database=RecipeApp;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
         public DbSet<Recipe> Recipe { get; set; }
