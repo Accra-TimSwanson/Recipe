@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Components.Forms
 @using RecipeApp.Contracts;
 @using System.Text.Json;
 @using Recipe.Services
@@ -30,7 +31,7 @@
 				<p>@recipe.Description</p>
 				@if (recipe.Image is not null)
 				{
-					<img class="recipe-image" src="data:image/jpeg;base64,@recipe.Image"/>
+					<img class="recipe-image" src="@recipe.Image"/>
 				}
 			</div>
 		}
@@ -56,7 +57,7 @@
 				</div>
 				@if (_selectedRecipe.Image is not null)
 				{
-					<img src="data:image/jpeg;base64,_selectedRecipe.Image" style="width: 15vw; height: 15vh" />
+					<img src="data:image/jpeg;base64,@_selectedRecipe.Image" style="width: 15vw; height: 15vh" />
 				}
 				<div class="py-2">
 					<h4>Ingredients:</h4>
@@ -104,7 +105,7 @@
 				</div>
 				<div class="form-group py-2">
 					<label for="image">Image</label>
-					<input type="file" class="form-control" id="image" />
+					<FilePicker Upload="OnFileUpload" ShowMode="FilePickerShowMode.List" />
 				</div>
 				<div class="py-2">
 					<hr />
@@ -153,7 +154,7 @@
 				</div>
 				<div class="form-group">
 					<label for="description">Description</label>
-						<textarea class="form-control" id="description" @bind="_newRecipeInstruction.Description" />
+					<textarea class="form-control" id="description" @bind="_newRecipeInstruction.Description" />
 				</div>
 			</div> 
 
@@ -176,7 +177,7 @@
 			}
 		</ModalBody>
 		<ModalFooter>
-			<Button Color="Color.Primary" @onclick="AddRecipe">Submit Recipe</Button>
+			<Button Color="Color.Primary" @onclick="AddUpdateRecipe">Submit Recipe</Button>
 		</ModalFooter>
 	</ModalContent>
 </Modal>

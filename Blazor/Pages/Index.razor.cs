@@ -5,7 +5,7 @@ using RecipeApp.Contracts;
 
 namespace Recipe.Pages
 {
-    public partial class Index
+	public partial class Index
 	{
 		private Modal _recipeClickedModal = new();
 		private Modal _addRecipeModal = new();
@@ -58,6 +58,27 @@ namespace Recipe.Pages
 			_addRecipeModal.Show();
 		}
 
+		public async Task OnFileUpload(FileUploadEventArgs e)
+		{
+			try
+			{
+				using (MemoryStream result = new MemoryStream())
+				{
+					await e.File.OpenReadStream(long.MaxValue).CopyToAsync(result);
+					_newRecipe.Image = $"data:{e.File.Name.Split('.')[1]};base64,{Convert.ToBase64String(result.ToArray())}";
+					var b = 1;
+				}
+			}
+			catch (Exception exc)
+			{
+				Console.WriteLine(exc.Message);
+			}
+			finally
+			{
+				this.StateHasChanged();
+			}
+		}
+
 		private void AddIngredient()
 		{
 			// Add the ingredient to the list
@@ -99,20 +120,17 @@ namespace Recipe.Pages
 			_newRecipeInstruction = new();
 		}
 
-		private async Task AddRecipe()
+		private async Task AddUpdateRecipe()
 		{
 			// check to see if it was an edit or a new recipe
 			if (_newRecipe == _selectedRecipe)
 			{
-				//await RecipeService.UpdateRecipe(_newRecipe);
+				await RecipeService.UpdateRecipe(_newRecipe);
 				// update the recipe in the list
 				_filteredRecipes[_filteredRecipes.FindIndex(x => x.Id == _newRecipe.Id)] = _newRecipe;
 				await _addRecipeModal.Hide();
 				return;
 			}
-
-			// add img
-			_newRecipe.Image = "https://via.placeholder.com/150";
 
 			// Add the recipe to the database
 			await RecipeService.AddRecipe(_newRecipe);

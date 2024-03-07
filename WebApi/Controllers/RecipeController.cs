@@ -26,6 +26,7 @@ namespace WebApi.Controllers
             var recipes = db.Recipe
                 .Include(x => x.Ingredients)
                 .Include(x => x.Instructions)
+                .AsNoTracking()
                 .ToList();
 
             // map to dto
@@ -45,7 +46,8 @@ namespace WebApi.Controllers
                 .Include(x => x.Ingredients)
                 .Include(x => x.Instructions)
                 .Where(x => x.Id == recipeId)
-                .FirstOrDefault();
+				.AsNoTracking()
+				.FirstOrDefault();
 
             // map to dto
             var recipeDto = _mapper.Map<RecipeDto>(recipe);
@@ -84,6 +86,7 @@ namespace WebApi.Controllers
             AppDbContext db = new AppDbContext();
             var existingRecipe = db.Recipe
             .Where(x => x.Id == recipeDto.Id)
+            .AsNoTracking()
             .FirstOrDefault();
 
             if (existingRecipe == null)

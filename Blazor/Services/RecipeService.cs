@@ -35,8 +35,10 @@ namespace Recipe.Services
 
         public async Task<RecipeDto> UpdateRecipe(RecipeDto recipe)
         {
-            var result = await httpClient.GetFromJsonAsync<RecipeDto>("https://localhost:7092/Recipe/Update");
-			return result != null ? result : new();
+            var result = await httpClient.PutAsJsonAsync("https://localhost:7092/Recipe/Update", recipe);
+			if (result.IsSuccessStatusCode) return recipe;
+
+			return new();
 		}
     }
 }
