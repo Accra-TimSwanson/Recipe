@@ -3,7 +3,6 @@ using Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipeApp.Contracts;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace WebApi.Controllers
 {
@@ -84,9 +83,8 @@ namespace WebApi.Controllers
         public void Update(RecipeDto recipeDto)
         {
 
-        // need top update the recipe, ingredients, and instructions
-        // map to entity
-            var recipe = _mapper.Map<Recipe>(recipeDto);
+            // need top update the recipe, ingredients, and instructions
+            // map to entity
             AppDbContext db = new AppDbContext();
             var existingRecipe = db.Recipe
                 .Include(x => x.Ingredients)
@@ -94,9 +92,17 @@ namespace WebApi.Controllers
                 .Where(x => x.Id == recipeDto.Id)
                 .FirstOrDefault();
 
-            if (existingRecipe != null) {
+            if (existingRecipe == null)
+            {
+                throw new Exception("Recipe does not exist");
+            }
 
-                // update the recipe
+            if (existingRecipe != null) 
+            {
+                // map dto to recipe entity
+                var recipe = _mapper.Map<Recipe>(recipeDto);
+
+                // update recipe
                 db.Entry(existingRecipe).CurrentValues.SetValues(recipe);
 
                 // update the ingredients

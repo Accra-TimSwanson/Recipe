@@ -13,7 +13,6 @@ namespace Recipe.Pages
 
 		public bool _isLoaded;
 
-		private Modal? _loadingModal = new();
 		private Modal? _recipeClickedModal = new();
 		private Modal? _addRecipeModal = new();
         private string _searchText = "";
