@@ -41,15 +41,15 @@
 @if (_selectedRecipe is not null)
 {
 	<Modal @ref="_recipeClickedModal" >
-		<ModalContent Centered Scrollable Size="ModalSize.Default">
+		<ModalContent Centered Scrollable Size="ModalSize.ExtraLarge">
 			<ModalHeader>
 				<ModalTitle>Recipe Details</ModalTitle>
 				<CloseButton />
 			</ModalHeader>
 			<ModalBody>
 				<div class="d-flex justify-content-between">
-						<h1>@_selectedRecipe.Title</h1>
-						<div class="btn btn-primary" @onclick="_ => { _addRecipeModal.Show(); _recipeClickedModal.Hide(); _newRecipe = _selectedRecipe; }">Edit</div>
+					<h3>@_selectedRecipe.Title</h3>
+					<div class="btn btn-primary n" @onclick="_ => { _addRecipeModal.Show(); _recipeClickedModal.Hide(); _newRecipe = _selectedRecipe; }">Edit</div>
 				</div>
 				<div class="py-2">
 					<h4>Description:</h4>
@@ -57,7 +57,7 @@
 				</div>
 				@if (_selectedRecipe.Image is not null)
 				{
-					<img src="data:image/jpeg;base64,@_selectedRecipe.Image" style="width: 15vw; height: 15vh" />
+					<img src="@_selectedRecipe.Image" style="width: 15vw; height: 15vh" />
 				}
 				<div class="py-2">
 					<h4>Ingredients:</h4>
@@ -89,7 +89,7 @@
 @if (_newRecipe is not null)
 {
 	<Modal @ref="_addRecipeModal">
-		<ModalContent Centered Scrollable Size="ModalSize.Default">
+		<ModalContent Centered Scrollable Size="ModalSize.ExtraLarge">
 			<ModalHeader>
 				<ModalTitle>@(_newRecipe == _selectedRecipe ? "Edit Recipe" : "Add Recipe")</ModalTitle>
 				<CloseButton />
@@ -118,13 +118,13 @@
 						<div class="col-6">
 							<div class="form-group">
 								<label for="ingredientQuantity">Quantity</label>
-									<input type="text" class="form-control" id="ingredientQuantity" @bind="_newRecipeIngredient.Quantity" />
+								<input type="text" class="form-control" id="ingredientQuantity" @bind="_newRecipeIngredient.Quantity" />
 							</div>
 						</div>
 						<div class="col-6">
 							<div class="form-group">
 								<label for="ingredientUnit">Unit</label>
-									<input type="text" class="form-control" id="ingredientUnit" @bind="_newRecipeIngredient.Unit" />
+								<input type="text" class="form-control" id="ingredientUnit" @bind="_newRecipeIngredient.Unit" />
 							</div>
 						</div>
 					</div>
@@ -157,11 +157,7 @@
 					<textarea class="form-control" id="description" @bind="_newRecipeInstruction.Description" />
 				</div>
 			</div> 
-
-			<div class="form-group py-2">
-				<label for="instructions">Instructions</label>
-				<div class="btn btn-primary" @onclick="_ => { AddInstruction(); }">Add Ingredient</div>
-			</div>
+			<div class="btn btn-primary" @onclick="_ => { AddInstruction(); }">Add Instruction</div>
 			@if (_newRecipe is not null && _newRecipe.Instructions is not null && _newRecipe.Instructions.Count() > 0)
 			{
 				<hr />
