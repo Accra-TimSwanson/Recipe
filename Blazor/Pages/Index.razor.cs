@@ -76,7 +76,6 @@ namespace Recipe.Pages
 				{
 					await e.File.OpenReadStream(long.MaxValue).CopyToAsync(result);
 					_newRecipe.Image = $"data:{e.File.Name.Split('.')[1]};base64,{Convert.ToBase64String(result.ToArray())}";
-					var b = 1;
 				}
 			}
 			catch (Exception exc)

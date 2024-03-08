@@ -9,7 +9,6 @@ namespace WebApi
         public AutomapperConfig()
         {
             CreateMap<Recipe, RecipeDto>().ReverseMap();
-            CreateMap<Recipe, RecipeDto>().ReverseMap();
             CreateMap<Ingredient, IngredientDto>().ReverseMap();
             CreateMap<Instruction, InstructionDto>().ReverseMap();
         }
